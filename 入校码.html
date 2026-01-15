@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入校码</title>
+    <!-- 引入Vant UI样式（匹配原页面组件） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.12/lib/index.css">
+    <style>
+        /* 匹配图片的自定义样式调整 */
+        body {
+            background-color: #f5f5f5; /* 页面背景色 */
+        }
+        #app {
+            background-color: #fff;
+            min-height: 100vh;
+        }
+        .text-grey {
+            color: #999;
+        }
+        .text-primary {
+            color: #1989fa;
+        }
+        .highlight {
+            color: #f56c6c; /* 匹配图片中“校外人员”的红色 */
+            font-weight: 500;
+        }
+        #qrcode {
+            margin: 1rem auto;
+            text-align: center;
+            width: fit-content;
+        }
+        #qrcode img {
+            width: 200px; /* 匹配图片中二维码的大小 */
+            height: 200px;
+        }
+        .van-nav-bar__title {
+            font-size: 16px; /* 导航栏标题大小 */
+        }
+        .van-nav-bar__right {
+            font-size: 14px; /* 登出按钮大小 */
+        }
+        #realTime {
+            font-size: 18px !important; /* 时间字体放大，匹配图片样式 */
+            color: #333 !important; /* 时间颜色改为黑色，匹配图片 */
+            font-weight: 500;
+        }
+        .van-cell-group__title {
+            padding: 12px 16px 8px;
+            color: #999;
+            font-size: 14px;
+        }
+        .van-cell {
+            font-size: 14px; /* 信息项字体大小 */
+        }
+        .van-button--block {
+            margin: 1rem 1rem 2rem;
+        }
+        /* 入校码说明区域样式调整 */
+        .code-desc {
+            padding: 8px 16px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 导航栏 -->
+        <div class="van-nav-bar van-hairline--bottom">
+            <div class="van-nav-bar__content">
+                <div class="van-nav-bar__title van-ellipsis">入校码</div>
+                <div class="van-nav-bar__right">
+                    <span class="van-nav-bar__text">登出</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="van-pull-refresh">
+            <div class="van-pull-refresh__track">
+                <div class="van-pull-refresh__head"></div>
+                
+                <!-- 实时时间显示（匹配图片样式） -->
+                <div id="realTime" style="text-align: center; padding-top: 1rem;"></div>
+                
+                <!-- 二维码区域（匹配图片大小） -->
+                <div id="qrcode" title="https://ehall.szpu.edu.cn/publicappinternet/sys/szptpubjkkck/mobile.do?param=wlry594430%2C1768197582553">
+                    <img alt="Scan me!" src="data:image/png;base64,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">
+                </div>
+                <div class="text-grey" style="text-align: center; padding-bottom: 1rem;">出入学校时请出示此二维码</div>
+
+                <!-- 基本信息区域（匹配图片布局） -->
+                <div>
+                    <div class="van-cell-group__title">基本信息</div>
+                    <div class="van-cell-group">
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>人员类别</span></div>
+                            <div class="van-cell__value"><span>校外人员</span></div>
+                        </div>
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>工号</span></div>
+                            <div class="van-cell__value"><span>wlry594430</span></div>
+                        </div>
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>姓名</span></div>
+                            <div class="van-cell__value" id="randomName"><span>王思聪</span></div>
+                        </div>
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>手机号</span></div>
+                            <div class="van-cell__value"><span>17788668866</span></div>
+                        </div>
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>身份证号</span></div>
+                            <div class="van-cell__value"><span>440294199001013330</span></div>
+                        </div>
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>部门</span></div>
+                            <div class="van-cell__value"><span class="highlight">校外人员</span></div>
+                        </div>
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>入校时间</span></div>
+                            <div class="van-cell__value">
+                                <div class="van-row van-row--flex van-row--align-center" id="todayEntryTime">2026-01-12 12:00-14:00 </div>
+                            </div><i class="text-primary van-icon van-icon-checked" style="font-size: 16px;"><!----></i>
+                        </div>
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>入校大门</span></div>
+                            <div class="van-cell__value"><span>留仙洞园区正门</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 校外人员信息区域 -->
+                <div>
+                    <div class="van-cell-group__title">校外人员信息</div>
+                    <div class="van-cell-group">
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>对接人</span></div>
+                        </div>
+                        <div class="van-cell van-cell--borderless">
+                            <div class="van-cell__title"><span>对接部门</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 入校码说明（匹配图片样式） -->
+                <div class="code-desc">
+                    入校码说明：
+                    <div class="text-grey" style="color: rgb(70, 153, 144);">
+                        绿/紫/蓝/青码：校内人员/学生/对公预约人员/参观预约人员在可入校时间段
+                    </div>
+                    <div class="text-grey">黄码：未预约或未到可入校时间</div>
+                    <div class="text-grey">红码：不符合入校条件</div>
+                    注：已有入校绿/紫/蓝/青码可在校门闸机刷身份证自助入校，或在i深职APP录入人脸信息并验核通过后刷脸通行。来访人员请务必携带身份证件。
+                    （预约时间内为蓝/青码，请尽量避开教职工入校高峰期08:00-08:45，开车入校的访客请严格按限速指示行驶，并停放于划定停车位，违反者将被列入黑名单）。
+                </div>
+
+                <!-- 报备按钮 -->
+                <div class="van-button-group">
+                    <button class="van-button van-button--primary van-button--normal van-button--block">
+                        <div class="van-button__content"><span class="van-button__text">校外人员入校报备</span></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要的JS -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.12/lib/vant.min.js"></script>
+    <script>
+        // 全局URL配置
+        window.LOGOUT_URL = 'https://authserver.szpu.edu.cn/authserver/logout?service=';
+        window.RXMCK_URL = 'https://ehall.szpu.edu.cn/publicappinternet/sys/szptpubjkkck/mobile.do';
+        window.XSJCXBB_URL = 'https://ehall.szpu.edu.cn/publicappinternet/sys/szptpubxslscxbb/mobile/index.html';
+        window.XSLSSQ_URL = 'https://ehall.szpu.edu.cn/publicappinternet/sys/szptpubxslssq/mobile/index.html';
+        window.JZGJCXBB_URL = 'https://ehall.szpu.edu.cn/publicappinternet/sys/szptpubjzglsjxbb/mobile/index.html';
+        window.HQRYJCXBB_URL = 'https://ehall.szpu.edu.cn/publicappinternet/sys/szptpubhqryrxbb/mobile/index.html';
+        window.JZGLSBA_URL = 'https://ehall.szpu.edu.cn/publicappinternet/sys/szptpubjzglsba/mobile/index.html';
+        window.HQRYLSBA_URL = 'https://ehall.szpu.edu.cn/publicappinternet/sys/szptpubhqrylsba/mobile/index.html';
+        window.XWRYRXZZBB_URL = 'https://ehall.szpu.edu.cn/publicappinternet/sys/szptpubxwryrxzzbb/mobile/index.html';
+
+        // 1. 时间格式化：匹配图片的“MM-DD HH:mm:ss”格式
+        function formatDateTime(date) {
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        // 2. 实时更新时间
+        function updateRealTime() {
+            const now = new Date();
+            const timeElement = document.getElementById('realTime');
+            if (timeElement) {
+                timeElement.textContent = formatDateTime(now);
+            }
+        }
+
+        // 3. 初始化时间并每秒刷新
+        updateRealTime();
+        setInterval(updateRealTime, 1000);
+
+        // 4. 生成随机三字常见中文姓名
+        function generateRandomChineseName() {
+            // 常见姓氏（覆盖高频使用的单字姓）
+            const surnames = ['赵', '钱', '孙', '李', '周', '吴', '郑', '王', '冯', '陈', '褚', '卫', '蒋', '沈', '韩', '杨', '朱', '秦', '尤', '许', '何', '吕', '施', '张', '孔', '曹', '严', '华'];
+            // 常见名字用字（寓意美好、使用频率高）
+            const givenNames = ['伟', '芳', '娜', '敏', '静', '强', '磊', '洋', '杰', '娟', '丽', '明', '超', '艳', '涛', '玲', '军', '浩', '文', '婷', '波', '霞', '斌', '颖', '辉', '佳', '宇', '欣'];
+            
+            // 随机选取姓氏
+            const randomSurname = surnames[Math.floor(Math.random() * surnames.length)];
+            // 随机选取两个名字用字组成双字名（三字姓名=单姓+双字名）
+            const randomGivenName1 = givenNames[Math.floor(Math.random() * givenNames.length)];
+            const randomGivenName2 = givenNames[Math.floor(Math.random() * givenNames.length)];
+            
+            // 拼接返回完整姓名
+            return randomSurname + randomGivenName1 + randomGivenName2;
+        }
+
+        // 5. 格式化当前日期为 YYYY-MM-DD 格式，并设置入校时间
+        function setTodayEntryTime() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            // 拼接当日日期，保留原有的时间段 12:00-14:00
+            const todayEntryTime = `${year}-${month}-${day} 12:00-14:00`;
+            // 更新页面上的入校时间
+            const entryTimeElement = document.getElementById('todayEntryTime');
+            if (entryTimeElement) {
+                entryTimeElement.textContent = todayEntryTime;
+            }
+        }
+
+        // 6. 页面加载完成后执行初始化操作
+        window.onload = function() {
+            // 生成并设置随机三字姓名
+            const randomName = generateRandomChineseName();
+            const nameElement = document.getElementById('randomName');
+            if (nameElement) {
+                nameElement.textContent = randomName;
+            }
+            
+            // 设置当日入校日期
+            setTodayEntryTime();
+        };
+
+        // 初始化Vant组件
+        vant.use(vant.Button);
+        vant.use(vant.NavBar);
+        vant.use(vant.Cell);
+        vant.use(vant.CellGroup);
+        vant.use(vant.PullRefresh);
+    </script>
+</body>
+</html>
