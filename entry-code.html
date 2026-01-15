@@ -243,7 +243,7 @@
             const month = String(today.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需+1并补零
             const day = String(today.getDate()).padStart(2, '0'); // 日期补零
             // 拼接当日日期，保留原有时间段 12:00-14:00
-            const todayEntryTime = `${year}-${month}-${day} 00:00-23:00`;
+            const todayEntryTime = `${year}-${month}-${day} 12:00-14:00`;
             // 更新页面上的入校时间
             const entryTimeElement = document.getElementById('todayEntryTime');
             if (entryTimeElement) {
@@ -272,4 +272,5 @@
 </body>
 
 </html>
+
 
